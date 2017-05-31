@@ -1,0 +1,23 @@
+{
+  "name": "aws-lambda-helper",
+  "version": "1.0.0",
+  "description": "Adds helper functions for Serverless stack with AWS-Lambda",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kpatel1989/aws-lambda-helper.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kpatel1989/aws-lambda-helper/issues"
+  },
+  "homepage": "https://github.com/kpatel1989/aws-lambda-helper#readme",
+  "dependencies": {
+    "aws-sdk": "^2.59.0",
+    "request": "^2.81.0"
+  }
+}
