@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/kpatel1989/aws-lambda-helper.git"
   },
-  "author": "",
+  "author": "Kartik Patel",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/kpatel1989/aws-lambda-helper/issues"
