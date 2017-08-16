@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/kpatel1989/aws-lambda-helper#readme",
   "dependencies": {
-    "aws-sdk": "^2.59.0",
     "request": "^2.81.0"
   }
 }
