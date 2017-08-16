@@ -1,5 +1,5 @@
 {
-  "name": "aws-lambda-helper",
+  "name": "aws-lambda-integration-helper",
   "version": "1.0.0",
   "description": "Adds helper functions for Serverless stack with AWS-Lambda",
   "main": "index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kpatel1989/aws-lambda-helper.git"
+    "url": "git+https://github.com/kpatel1989/aws-lambda-integration-helper.git"
   },
   "author": "Kartik Patel",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/kpatel1989/aws-lambda-helper/issues"
+    "url": "https://github.com/kpatel1989/aws-lambda-integration-helper/issues"
   },
-  "homepage": "https://github.com/kpatel1989/aws-lambda-helper#readme",
+  "homepage": "https://github.com/kpatel1989/aws-lambda-integration-helper#readme",
   "dependencies": {
     "request": "^2.81.0"
   }
