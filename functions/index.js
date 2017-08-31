@@ -7,21 +7,20 @@ const logUrl = `https://${process.env.AWS_REGION}.console.aws.amazon.com/cloudwa
 const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
 const jobName = process.env.jobName;
 
-function insertLogsToDatabase(phase, statusMessage, status,jobItemNumber,jobItemType,createdAt=null) {
+function log(phase, statusMessage, status,jobItemNumber,jobItemType,createdAt=null) {
     console.log(`Logging ${statusMessage} to database`);
     return invokeLambda("DatabaseInsertLogs", { jobName, logUrl, status, extraFields: {phase, functionName}, jobItemNumber, statusMessage, createdAt, updatedAt:new Date().getTime() , integrationId : 1, jobItemType },'us-west-2'); // integrationID = 1 for Go Integration ZohoINV to Shopify integration
 }
 
-function invokeLambda(functionName, jsonPayload, region = 'us-west-2') {
+function invokeLambda(functionName, jsonPayload, region = process.env.AWS_REGION) {
     return new Promise((resolve, reject) => {
         console.log(`Invoking ${functionName}`);
-        var lambda = new aws.Lambda({
-            region: region
-        });
+        var lambda = new aws.Lambda({region});
         lambda.invoke({
             FunctionName: functionName,
             Payload: JSON.stringify(jsonPayload, null, 2) // pass params
         }, function (error, data) {
+            console.log("Invoke Lambda response : ", data);
             if (error) {
                 console.log(error);
                 reject(error);
@@ -92,4 +91,12 @@ function shopifyRequest (requestOptions, shopifyConfig) {
     });
 }
 
-module.exports = {functionName,jobName,logUrl,insertLogsToDatabase,invokeLambda,shopifyRequest,zohoInvRequest};
+function timedInvoke(functionName, payload, interval) {
+	return new Promise((resolve, reject) => {
+		setTimeout(function () {
+			invokeLambda(functionName, payload).then(resolve).catch(reject);
+		}, interval);
+	})
+}
+
+module.exports = {functionName,jobName,logUrl,log,invokeLambda,shopifyRequest,zohoInvRequest, timedInvoke};
