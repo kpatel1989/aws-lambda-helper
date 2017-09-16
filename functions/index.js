@@ -91,10 +91,10 @@ function shopifyRequest (requestOptions, shopifyConfig) {
     });
 }
 
-function timedInvoke(functionName, payload, interval) {
+function timedInvoke(functionName, payload, region, interval) {
 	return new Promise((resolve, reject) => {
 		setTimeout(function () {
-			invokeLambda(functionName, payload).then(resolve).catch(reject);
+			invokeLambda(functionName, payload, region).then(resolve).catch(reject);
 		}, interval);
 	})
 }
