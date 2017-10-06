@@ -7,15 +7,24 @@ const logUrl = `https://${process.env.AWS_REGION}.console.aws.amazon.com/cloudwa
 const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
 const jobName = process.env.jobName;
 
-function log(phase, statusMessage, status,jobItemNumber,jobItemType,createdAt=null) {
+var shopifyOptions = {
+    method: 'GET',
+    url: '',
+    qs: {
+        page: 1,
+        limit: 250
+    }
+};
+
+function log(phase, statusMessage, status, jobItemNumber, jobItemType, createdAt = null) {
     console.log(`Logging ${statusMessage} to database`);
-    return invokeLambda("DatabaseInsertLogs", { jobName, logUrl, status, extraFields: {phase, functionName}, jobItemNumber, statusMessage, createdAt, updatedAt:new Date().getTime() , integrationId : 1, jobItemType },'us-west-2'); // integrationID = 1 for Go Integration ZohoINV to Shopify integration
+    return invokeLambda("DatabaseInsertLogs", { jobName, logUrl, status, extraFields: { phase, functionName }, jobItemNumber, statusMessage, createdAt, updatedAt: new Date().getTime(), integrationId: 1, jobItemType }, 'us-west-2'); // integrationID = 1 for Go Integration ZohoINV to Shopify integration
 }
 
 function invokeLambda(functionName, jsonPayload, region = process.env.AWS_REGION) {
     return new Promise((resolve, reject) => {
         console.log(`Invoking ${functionName}`);
-        var lambda = new aws.Lambda({region});
+        var lambda = new aws.Lambda({ region });
         lambda.invoke({
             FunctionName: functionName,
             Payload: JSON.stringify(jsonPayload, null, 2) // pass params
@@ -53,11 +62,11 @@ function zohoInvRequest(requestOptions, zohoConfig) {
     return new Promise((resolve, reject) => {
         request(options, (error, response, body) => {
             if (error) {
-                console.log("Request error", error||body);
+                console.log("Request error", error || body);
                 reject(error || body);
             } else {
                 body = JSON.parse(body);
-                console.log("Response",body);
+                console.log("Response", body);
                 if (body.code != 0) reject(body);
                 else resolve(body);
             }
@@ -65,7 +74,7 @@ function zohoInvRequest(requestOptions, zohoConfig) {
     })
 }
 
-function shopifyRequest (requestOptions, shopifyConfig) {
+function shopifyRequest(requestOptions, shopifyConfig) {
     return new Promise((resolve, reject) => {
         var options = {
             method: requestOptions.method,
@@ -77,9 +86,7 @@ function shopifyRequest (requestOptions, shopifyConfig) {
             body: requestOptions.body,
             json: true
         };
-        console.log(options);
         request(options, function (error, response, body) {
-            console.log("Shopify request processed : ", requestOptions.url);
             if (error) {
                 console.log(error);
                 reject(error);
@@ -91,12 +98,55 @@ function shopifyRequest (requestOptions, shopifyConfig) {
     });
 }
 
+function zohoCrmRequest() {
+
+}
 function timedInvoke(functionName, payload, region, interval) {
-	return new Promise((resolve, reject) => {
-		setTimeout(function () {
-			invokeLambda(functionName, payload, region).then(resolve).catch(reject);
-		}, interval);
-	})
+    return new Promise((resolve, reject) => {
+        setTimeout(function () {
+            invokeLambda(functionName, payload, region).then(resolve).catch(reject);
+        }, interval);
+    })
 }
 
-module.exports = {functionName,jobName,logUrl,log,invokeLambda,shopifyRequest,zohoInvRequest, timedInvoke};
+function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
+    return new Promise((resolve, reject) => {
+        var mergedResponse = [];
+        var req = (requestOptions, shopifyConfig, cb) => {
+            try {
+                var options = {
+                    method: requestOptions.method,
+                    url: `https://${shopifyConfig.apiKey}:${shopifyConfig.password}@${shopifyConfig.shopName}.myshopify.com/${requestOptions.url}`,
+                    headers:
+                    {
+                        'content-type': 'application/json'
+                    },
+                    body: requestOptions.body,
+                    json: true
+                };
+                request(options, function (error, response, body) {
+                    if (error) {
+                        console.log(error);
+                        reject(error);
+                    } else {
+                        if (body[key].length > 0) {
+                            mergedResponse = mergedResponse.concat(body[key]);
+                            console.log("Shopify request page :", page);
+                            requestOptions.body.page += 1;
+                            req(requestOptions, shopifyConfig, cb);
+                        } else {
+                            cb(null, mergedResponse);
+                        }
+                    }
+                });
+            } catch (error) {
+                cb(error);
+            }
+        }
+        req(requestOptions, shopifyConfig, (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+        })
+    });
+}
+module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest };
