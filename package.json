@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/kpatel1989/aws-lambda-integration-helper#readme",
   "dependencies": {
+    "aws-sdk": "^2.134.0",
     "request": "^2.81.0"
   },
   "devDependencies": {
