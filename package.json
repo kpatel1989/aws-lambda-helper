@@ -1,10 +1,11 @@
 {
   "name": "aws-lambda-integration-helper",
-  "version": "1.1.0",
+  "version": "1.1.20",
+
   "description": "Adds helper functions for Serverless stack with AWS-Lambda",
   "main": "functions/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/**/test.js --timeout=6000"
   },
   "repository": {
     "type": "git",
@@ -17,11 +18,9 @@
   },
   "homepage": "https://github.com/kpatel1989/aws-lambda-integration-helper#readme",
   "dependencies": {
-    "aws-sdk": "^2.134.0",
+    "aws-sdk": "^2.103.0",
+    "expect": "^1.20.2",
+    "mocha": "^3.5.0",
     "request": "^2.81.0"
-  },
-  "devDependencies": {
-    "chai": "^4.1.1",
-    "mocha": "^3.5.0"
   }
 }
