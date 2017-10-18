@@ -98,9 +98,23 @@ function shopifyRequest(requestOptions, shopifyConfig) {
     });
 }
 
-function zohoCrmRequest() {
-
+function zohoCrmGetRequest(requestOptions, authtoken) {
+    var options = {
+        method: requestOptions.method,
+        url: `https://crm.zoho.com/crm/private/${requestOptions/datatype}${requestOptions/url}`,
+        params: Object.assign( {}, {
+          authtoken: authtoken,
+          newFormat: 2,
+          scope: 'crmapi',
+          
+        }, {
+            criteria: requestOptions.criteria,
+            duplicateCheck: requestOptions.duplicateCheck
+        })
+      };
+    return axios(options);
 }
+
 function timedInvoke(functionName, payload, region, interval) {
     return new Promise((resolve, reject) => {
         setTimeout(function () {
@@ -125,13 +139,12 @@ function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
                     json: true
                 };
                 request(options, function (error, response, body) {
-                    if (error) {
-                        console.log(error);
-                        reject(error);
+                    if (error || body.errors) {
+                        console.log(error || JSON.stringify(body.errors));
+                        reject(error || JSON.stringify(body.errors));
                     } else {
                         if (body[key].length > 0) {
                             mergedResponse = mergedResponse.concat(body[key]);
-                            console.log("Shopify request page :", page);
                             requestOptions.body.page += 1;
                             req(requestOptions, shopifyConfig, cb);
                         } else {
@@ -149,4 +162,28 @@ function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
         })
     });
 }
-module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest };
+
+function zohInvRecursiveRequest(page, cb) {
+    options.qs.page = page;
+    var data = [];
+    request(options, function (error, response, body) {
+        if (error) {
+            console.log(error);
+            cb(null);
+        }
+        var body = JSON.parse(body);
+        if (body.code != 0) {
+            console.log(body);
+            cb(null);
+            return;
+        }
+        console.log("Item count", body.items.length, data.length)
+        if (body.items.length > 0) {
+            data = data.concat(body.items);
+        } else {
+            cb(data);
+        }
+    });
+}
+
+module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest, zohInvRecursiveRequest };
