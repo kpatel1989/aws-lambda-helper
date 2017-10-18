@@ -1,6 +1,7 @@
 'use strict';
 var aws = require("aws-sdk");
 var request = require("request");
+const stepfunctions = new aws.StepFunctions();
 const log_group = process.env.AWS_LAMBDA_LOG_GROUP_NAME;
 const stream_group = process.env.AWS_LAMBDA_LOG_STREAM_NAME;
 const logUrl = `https://${process.env.AWS_REGION}.console.aws.amazon.com/cloudwatch/home?region=${process.env.AWS_REGION}#logEventViewer:group=${log_group};stream=${stream_group}`; // final url for cloud watch
@@ -98,6 +99,30 @@ function shopifyRequest(requestOptions, shopifyConfig) {
     });
 }
 
+const invokeStepFunction = (input,context,sfName,name)=>{
+    let accountId = context.invokedFunctionArn.split(':')[4];
+    let state = context.invokedFunctionArn.split(':')[3];
+    let params = {
+        stateMachineArn: `arn:aws:states:${state}:${accountId}:stateMachine:${sfName}`,
+        input: JSON.stringify(input),
+        name: `${name}-${new Date().getTime()}`
+    };
+    return new Promise((resolve,reject)=>{
+        stepfunctions.startExecution(params, (error,data)=>{
+            if(error)
+            {
+                console.log(`Fail to execute ${sfName} step function! Error: ${error}`);
+                reject(`Fail to execute ${sfName} step function! Error: ${error}`);
+            }
+            else
+            {
+                console.log(data);
+                resolve(data);
+            }
+        });
+    });
+}
+
 function zohoCrmGetRequest(requestOptions, authtoken) {
     var options = {
         method: requestOptions.method,
@@ -186,4 +211,5 @@ function zohInvRecursiveRequest(page, cb) {
     });
 }
 
-module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest, zohInvRecursiveRequest };
+module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest, zohInvRecursiveRequest,invokeStepFunction};
+
