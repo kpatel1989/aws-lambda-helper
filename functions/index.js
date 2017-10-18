@@ -56,7 +56,7 @@ function zohoInvRequest(requestOptions, zohoConfig) {
             }
         };
     if (requestOptions.body) {
-        options.form = body
+        options.form = requestOptions.body
     }
     console.log("Options:", options);
     return new Promise((resolve, reject) => {
