@@ -163,27 +163,46 @@ function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
     });
 }
 
-function zohInvRecursiveRequest(page, cb) {
-    options.qs.page = page;
+function zohInvRecursiveRequest(requestOptions, zohoConfig, condition, cb) {
     var data = [];
-    request(options, function (error, response, body) {
-        if (error) {
-            console.log(error);
-            cb(null);
-        }
-        var body = JSON.parse(body);
-        if (body.code != 0) {
-            console.log(body);
-            cb(null);
-            return;
-        }
-        console.log("Item count", body.items.length, data.length)
-        if (body.items.length > 0) {
-            data = data.concat(body.items);
-        } else {
-            cb(data);
-        }
-    });
+	const recursiveRequest = (requestOptions, zohoConfig, cb) => {
+		var options =
+			{
+				method: requestOptions.method,
+				url: 'https://inventory.zoho.com/api/v1' + requestOptions.url,
+				qs: { authtoken: zohoConfig.authtoken, organizationId: zohoConfig.organizationId, page: requestOptions.page },
+				headers:
+				{
+					'cache-control': 'no-cache',
+					'content-type': requestOptions.contentType || 'application/x-www-form-urlencoded'
+				}
+			};
+		if (requestOptions.body) {
+			options.form = body
+		}
+		request(options, function (error, response, body) {
+			if (error) {
+				console.log(error);
+				cb(null);
+			}
+			var body = JSON.parse(body);
+			if (body.code != 0) {
+				console.log(body);
+				cb(null);
+				return;
+			}
+			console.log("Item count", body[requestOptions.key].length, data.length);
+			var len = body[requestOptions.key].length;
+			if (len > 0 && new Date(body[requestOptions.key][0].last_modified_time).getTime() < condition.last_modified_time) {
+				data = data.concat(body[requestOptions.key]);
+				requestOptions.page += 1;
+				recursiveRequest(requestOptions, zohoConfig, cb);
+			} else {
+				cb(data);
+			}
+		});
+	}
+	recursiveRequest(requestOptions, zohoConfig, cb);
 }
 
 module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest, zohInvRecursiveRequest };
