@@ -1,6 +1,6 @@
 {
   "name": "aws-lambda-integration-helper",
-  "version": "1.0.21",
+  "version": "1.1.0",
   "description": "Adds helper functions for Serverless stack with AWS-Lambda",
   "main": "functions/index.js",
   "scripts": {
