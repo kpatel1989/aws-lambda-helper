@@ -147,20 +147,21 @@ function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
     });
 }
 
-function zohInvRecursiveRequest(requestOptions, zohoConfig, cb) {    
+
+function zohInvRecursiveRequest(requestOptions, zohoConfig, condition, cb) {
     var data = [];
     const recursiveRequest = (requestOptions, zohoConfig, cb) => {
         var options =
-        {
-            method: requestOptions.method,
-            url: 'https://inventory.zoho.com/api/v1' + requestOptions.url,
-            qs: { authtoken: zohoConfig.authtoken, organizationId: zohoConfig.organizationId, page: requestOptions.page },
-            headers:
             {
-                'cache-control': 'no-cache',
-                'content-type': requestOptions.contentType || 'application/x-www-form-urlencoded'
-            }
-        };
+                method: requestOptions.method,
+                url: 'https://inventory.zoho.com/api/v1' + requestOptions.url,
+                qs: { authtoken: zohoConfig.authtoken, organizationId: zohoConfig.organizationId, page: requestOptions.page },
+                headers:
+                {
+                    'cache-control': 'no-cache',
+                    'content-type': requestOptions.contentType || 'application/x-www-form-urlencoded'
+                }
+            };
         if (requestOptions.body) {
             options.form = body
         }
@@ -175,8 +176,10 @@ function zohInvRecursiveRequest(requestOptions, zohoConfig, cb) {
                 cb(null);
                 return;
             }
-            console.log("Item count", body[requestOptions.key].length, data.length)
-            if (body[requestOptions.key].length > 0) {
+            console.log("Item count", body[requestOptions.key].length, data.length);
+            var len = body[requestOptions.key].length;
+            // console.log("" + new Date(body[requestOptions.key][0].last_modified_time).getTime() +","+ condition.last_modified_time);
+            if (len > 0 && new Date(body[requestOptions.key][0].last_modified_time).getTime() > condition.last_modified_time) {
                 data = data.concat(body[requestOptions.key]);
                 requestOptions.page += 1;
                 recursiveRequest(requestOptions, zohoConfig, cb);
@@ -188,7 +191,7 @@ function zohInvRecursiveRequest(requestOptions, zohoConfig, cb) {
     recursiveRequest(requestOptions, zohoConfig, cb);
 }
 
-const invokeStepFunction = (input,context,sfName,name)=>{
+const invokeStepFunction = (input, context, sfName, name) => {
     let accountId = context.invokedFunctionArn.split(':')[4];
     let state = context.invokedFunctionArn.split(':')[3];
     let params = {
@@ -196,15 +199,13 @@ const invokeStepFunction = (input,context,sfName,name)=>{
         input: JSON.stringify(input),
         name: `${name}-${new Date().getTime()}`
     };
-    return new Promise((resolve,reject)=>{
-        stepfunctions.startExecution(params, (error,data)=>{
-            if(error)
-            {
+    return new Promise((resolve, reject) => {
+        stepfunctions.startExecution(params, (error, data) => {
+            if (error) {
                 console.log(`Fail to execute ${sfName} step function! Error: ${error}`);
                 reject(`Fail to execute ${sfName} step function! Error: ${error}`);
             }
-            else
-            {
+            else {
                 console.log(data);
                 resolve(data);
             }
