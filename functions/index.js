@@ -58,15 +58,15 @@ function zohoInvRequest(requestOptions, zohoConfig) {
     if (requestOptions.body) {
         options.form = requestOptions.body
     }
-    console.log("Options:", options);
+    // console.log("Options:", options);
     return new Promise((resolve, reject) => {
         request(options, (error, response, body) => {
             if (error) {
-                console.log("Request error", error || body);
+                // console.log("Request error", error || body);
                 reject(error || body);
             } else {
                 body = JSON.parse(body);
-                console.log("Response", body);
+                // console.log("Response", body);
                 if (body.code != 0) reject(body);
                 else resolve(body);
             }
@@ -97,24 +97,7 @@ function shopifyRequest(requestOptions, shopifyConfig) {
         });
     });
 }
-
-function zohoCrmGetRequest(requestOptions, authtoken) {
-    var options = {
-        method: requestOptions.method,
-        url: `https://crm.zoho.com/crm/private/${requestOptions/datatype}${requestOptions/url}`,
-        params: Object.assign( {}, {
-          authtoken: authtoken,
-          newFormat: 2,
-          scope: 'crmapi',
-          
-        }, {
-            criteria: requestOptions.criteria,
-            duplicateCheck: requestOptions.duplicateCheck
-        })
-      };
-    return axios(options);
 }
-
 function timedInvoke(functionName, payload, region, interval) {
     return new Promise((resolve, reject) => {
         setTimeout(function () {
@@ -163,46 +146,45 @@ function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
     });
 }
 
-function zohInvRecursiveRequest(requestOptions, zohoConfig, condition, cb) {
+function zohInvRecursiveRequest(requestOptions, zohoConfig, cb) {    
     var data = [];
-	const recursiveRequest = (requestOptions, zohoConfig, cb) => {
-		var options =
-			{
-				method: requestOptions.method,
-				url: 'https://inventory.zoho.com/api/v1' + requestOptions.url,
-				qs: { authtoken: zohoConfig.authtoken, organizationId: zohoConfig.organizationId, page: requestOptions.page },
-				headers:
-				{
-					'cache-control': 'no-cache',
-					'content-type': requestOptions.contentType || 'application/x-www-form-urlencoded'
-				}
-			};
-		if (requestOptions.body) {
-			options.form = body
-		}
-		request(options, function (error, response, body) {
-			if (error) {
-				console.log(error);
-				cb(null);
-			}
-			var body = JSON.parse(body);
-			if (body.code != 0) {
-				console.log(body);
-				cb(null);
-				return;
-			}
-			console.log("Item count", body[requestOptions.key].length, data.length);
-			var len = body[requestOptions.key].length;
-			if (len > 0 && new Date(body[requestOptions.key][0].last_modified_time).getTime() < condition.last_modified_time) {
-				data = data.concat(body[requestOptions.key]);
-				requestOptions.page += 1;
-				recursiveRequest(requestOptions, zohoConfig, cb);
-			} else {
-				cb(data);
-			}
-		});
-	}
-	recursiveRequest(requestOptions, zohoConfig, cb);
+    const recursiveRequest = (requestOptions, zohoConfig, cb) => {
+        var options =
+        {
+            method: requestOptions.method,
+            url: 'https://inventory.zoho.com/api/v1' + requestOptions.url,
+            qs: { authtoken: zohoConfig.authtoken, organizationId: zohoConfig.organizationId, page: requestOptions.page },
+            headers:
+            {
+                'cache-control': 'no-cache',
+                'content-type': requestOptions.contentType || 'application/x-www-form-urlencoded'
+            }
+        };
+        if (requestOptions.body) {
+            options.form = body
+        }
+        request(options, function (error, response, body) {
+            if (error) {
+                console.log(error);
+                cb(null);
+            }
+            var body = JSON.parse(body);
+            if (body.code != 0) {
+                console.log(body);
+                cb(null);
+                return;
+            }
+            console.log("Item count", body[requestOptions.key].length, data.length)
+            if (body[requestOptions.key].length > 0) {
+                data = data.concat(body[requestOptions.key]);
+                requestOptions.page += 1;
+                recursiveRequest(requestOptions, zohoConfig, cb);
+            } else {
+                cb(data);
+            }
+        });
+    }
+    recursiveRequest(requestOptions, zohoConfig, cb);
 }
 
 module.exports = { functionName, jobName, logUrl, log, invokeLambda, shopifyRequest, zohoInvRequest, timedInvoke, shopifyRecursiveRequest, zohInvRecursiveRequest };
