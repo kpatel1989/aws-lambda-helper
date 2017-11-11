@@ -98,7 +98,7 @@ function shopifyRequest(requestOptions, shopifyConfig) {
         });
     });
 }
-}
+
 function timedInvoke(functionName, payload, region, interval) {
     return new Promise((resolve, reject) => {
         setTimeout(function () {
