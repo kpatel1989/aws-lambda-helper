@@ -76,10 +76,11 @@ function zohoInvRequest(requestOptions, zohoConfig) {
 }
 
 function shopifyRequest(requestOptions, shopifyConfig) {
+    var url = `https://${shopifyConfig.apiKey}:${shopifyConfig.password}@${shopifyConfig.shopName}.myshopify.com${requestOptions.url}`;
     return new Promise((resolve, reject) => {
         var options = {
-            method: requestOptions.method,
-            url: `https://${shopifyConfig.apiKey}:${shopifyConfig.password}@${shopifyConfig.shopName}.myshopify.com/${requestOptions.url}`,
+            method: requestOptions.method,            
+            url,
             headers:
             {
                 'content-type': 'application/json'
@@ -87,6 +88,10 @@ function shopifyRequest(requestOptions, shopifyConfig) {
             body: requestOptions.body,
             json: true
         };
+        if (requestOptions.method == "GET") {
+            options.qs = requestOptions.body;
+            Reflect.deleteProperty(options, 'body');
+        }
         request(options, function (error, response, body) {
             if (error) {
                 console.log(error);
@@ -108,13 +113,14 @@ function timedInvoke(functionName, payload, region, interval) {
 }
 
 function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
+    var url = `https://${shopifyConfig.apiKey}:${shopifyConfig.password}@${shopifyConfig.shopName}.myshopify.com${requestOptions.url}`;
     return new Promise((resolve, reject) => {
         var mergedResponse = [];
         var req = (requestOptions, shopifyConfig, cb) => {
             try {
                 var options = {
                     method: requestOptions.method,
-                    url: `https://${shopifyConfig.apiKey}:${shopifyConfig.password}@${shopifyConfig.shopName}.myshopify.com/${requestOptions.url}`,
+                    url ,
                     headers:
                     {
                         'content-type': 'application/json'
@@ -122,6 +128,10 @@ function shopifyRecursiveRequest(requestOptions, shopifyConfig, key) {
                     body: requestOptions.body,
                     json: true
                 };
+                if (requestOptions.method == "GET") {
+                    options.qs = requestOptions.body;
+                    Reflect.deleteProperty(options, 'body');
+                }
                 request(options, function (error, response, body) {
                     if (error || body.errors) {
                         console.log(error || JSON.stringify(body.errors));
