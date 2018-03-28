@@ -18,26 +18,26 @@ var shopifyOptions = {
 };
 
 function log(phase, statusMessage, status, jobItemNumber, jobItemType, createdAt = null) {
-    console.log(`Logging ${statusMessage} to database`);
+    // console.log(`Logging ${statusMessage} to database`);
     return invokeLambda("DatabaseInsertLogs", { jobName, logUrl, status, extraFields: { phase, functionName }, jobItemNumber, statusMessage, createdAt, updatedAt: new Date().getTime(), integrationId: 1, jobItemType }, 'us-west-2'); // integrationID = 1 for Go Integration ZohoINV to Shopify integration
 }
 
 function invokeLambda(functionName, jsonPayload, region = process.env.AWS_REGION) {
     return new Promise((resolve, reject) => {
-        console.log(`Invoking ${functionName}`);
+        // console.log(`Invoking ${functionName}`);
         var lambda = new aws.Lambda({ region });
         lambda.invoke({
             FunctionName: functionName,
             Payload: JSON.stringify(jsonPayload, null, 2) // pass params
         }, function (error, data) {
-            console.log("Invoke Lambda response : ", data);
+            // console.log("Invoke Lambda response : ", data);
             if (error) {
                 console.log(error);
                 reject(error);
             }
             if (data.Payload) {
                 var response = JSON.parse(data.Payload);
-                console.log(response);
+                // console.log(response);
                 resolve(response);
             }
         });
@@ -97,7 +97,7 @@ function shopifyRequest(requestOptions, shopifyConfig) {
                 console.log(error);
                 reject(error);
             } else {
-                console.log("Shopify response", body);
+                // console.log("Shopify response", body);
                 resolve(body);
             }
         });
@@ -182,11 +182,11 @@ function zohInvRecursiveRequest(requestOptions, zohoConfig, condition, cb) {
             }
             var body = JSON.parse(body);
             if (body.code != 0) {
-                console.log(body);
+                // console.log(body);
                 cb(null);
                 return;
             }
-            console.log("Item count", body[requestOptions.key].length, data.length);
+            // console.log("Item count", body[requestOptions.key].length, data.length);
             var len = body[requestOptions.key].length;
             // console.log("" + new Date(body[requestOptions.key][0].last_modified_time).getTime() +","+ condition.last_modified_time);
             if (len > 0 && new Date(body[requestOptions.key][0].last_modified_time).getTime() > condition.last_modified_time) {
@@ -216,7 +216,7 @@ const invokeStepFunction = (input, context, sfName, name) => {
                 reject(`Fail to execute ${sfName} step function! Error: ${error}`);
             }
             else {
-                console.log(data);
+                // console.log(data);
                 resolve(data);
             }
         });
